@@ -204,11 +204,12 @@
 {
 	NSLog(@"swiped with %@", recognizer);
    
+	// scroll to the far left and the far right - the split view controller handles max and mins internally.
     if (recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
-		[splitViewController setSplitPosition:self.superview.frame.origin.x + 40 animated:YES];
+		[splitViewController setSplitPosition:self.superview.frame.origin.x animated:YES];
     }
     else {
-        [splitViewController setSplitPosition:self.superview.frame.size.width / 2.0 animated:YES];
+        [splitViewController setSplitPosition:self.superview.frame.size.width animated:YES];
     }
 }
 
