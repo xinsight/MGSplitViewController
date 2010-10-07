@@ -34,7 +34,6 @@
 	[super dealloc];
 }
 
-
 #pragma mark -
 #pragma mark Drawing
 
@@ -196,6 +195,23 @@
 }
 
 
+//
+// handleSwipeFrom:
+//
+// If the divider is swiped then move the divider all the way to the left or right with a pretty animation.
+//
+- (void)handleSwipeFrom:(UISwipeGestureRecognizer *)recognizer 
+{
+	NSLog(@"swiped with %@", recognizer);
+   
+    if (recognizer.direction == UISwipeGestureRecognizerDirectionLeft) {
+		[splitViewController setSplitPosition:self.superview.frame.origin.x + 40 animated:YES];
+    }
+    else {
+        [splitViewController setSplitPosition:self.superview.frame.size.width / 2.0 animated:YES];
+    }
+}
+
 #pragma mark -
 #pragma mark Accessors and properties
 
@@ -206,6 +222,20 @@
 		allowsDragging = flag;
 		self.userInteractionEnabled = allowsDragging;
 	}
+
+	// lazily load the gesture recognizers for swiping the divider.
+	if (flag && [self.gestureRecognizers count] <= 0) {
+		// set up swipe gestures
+		UISwipeGestureRecognizer *recognizer = nil;
+		recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeFrom:)];
+		[self addGestureRecognizer:recognizer];
+		[recognizer release];
+		recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeFrom:)];
+		recognizer.direction = UISwipeGestureRecognizerDirectionLeft;		
+		[self addGestureRecognizer:recognizer];
+		[recognizer release];
+	}
+	
 }
 
 
