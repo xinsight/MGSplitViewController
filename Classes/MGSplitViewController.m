@@ -28,6 +28,7 @@
 
 - (void)setup;
 - (CGSize)splitViewSizeForOrientation:(UIInterfaceOrientation)theOrientation;
+- (float)constrainSplitPosition:(float)posn constrained:(BOOL*)constrained;
 - (void)layoutSubviews;
 - (void)layoutSubviewsWithAnimation:(BOOL)animate;
 - (void)layoutSubviewsForInterfaceOrientation:(UIInterfaceOrientation)theOrientation withAnimation:(BOOL)animate;
@@ -633,6 +634,48 @@
 	}
 }
 
+typedef struct BounceContext_tag {
+	float finalPosn;
+	BOOL left;
+	int count;
+} BounceContext;
+
+- (void) bounceWithContext:(BounceContext*)context
+{
+	[UIView beginAnimations:@"Bounce" context:context];
+	float nextPos = 0;
+	switch (context->count) {
+		case 0:
+			nextPos = context->left ? context->finalPosn - 20 : context->finalPosn + 20;
+			[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
+			[UIView setAnimationDelay:0.25];
+			break;
+		case 1:
+			nextPos = context->finalPosn;
+			[UIView setAnimationCurve:UIViewAnimationCurveLinear];
+			[UIView setAnimationDelay:0.05];
+			break;
+	}
+	
+	[UIView setAnimationDelegate:self];
+	[UIView setAnimationDidStopSelector:@selector(bounceStepDidEnd:finished:context:)];
+	[self setSplitPosition:nextPos];
+	[UIView commitAnimations];	
+	
+}
+
+- (void) bounceStepDidEnd:(NSString*)animationID finished:(NSNumber*)finished context:(void*)context
+{	
+	BounceContext* ctxt = (BounceContext*)context;
+	(ctxt->count)++;
+	
+	if (ctxt->count <= 1) {
+		[self bounceWithContext:ctxt];
+	} else {
+		free(ctxt);
+	}
+}
+
 
 #pragma mark -
 #pragma mark IB Actions
@@ -839,24 +882,33 @@
 	return _splitPosition;
 }
 
-
-- (void)setSplitPosition:(float)posn
+   
+- (float) constrainSplitPosition:(float)posn constrained:(BOOL*)constrained
 {
-	// Check to see if delegate wishes to constrain the position.
 	float newPosn = posn;
-	BOOL constrained = NO;
+	*constrained = NO;
 	CGSize fullSize = [self splitViewSizeForOrientation:self.interfaceOrientation];
 	if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:constrainSplitPosition:splitViewSize:)]) {
 		newPosn = [_delegate splitViewController:self constrainSplitPosition:newPosn splitViewSize:fullSize];
-		constrained = YES; // implicitly trust delegate's response.
+		*constrained = YES; // implicitly trust delegate's response.
 		
 	} else {
 		// Apply default constraints if delegate doesn't wish to participate.
 		float minPos = MG_MIN_VIEW_WIDTH;
 		float maxPos = ((_vertical) ? fullSize.width : fullSize.height) - (MG_MIN_VIEW_WIDTH + _splitWidth);
-		constrained = (newPosn != _splitPosition && newPosn >= minPos && newPosn <= maxPos);
+		*constrained = (newPosn != _splitPosition && newPosn >= minPos && newPosn <= maxPos);
 	}
+
+	return newPosn;
+}
+
+- (void)setSplitPosition:(float)posn
+{
 	
+	// Check to see if delegate wishes to constrain the position.
+	BOOL constrained = NO;
+	float newPosn = [self constrainSplitPosition:posn constrained:&constrained];
+
 	if (constrained) {
 		if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
 			[_hiddenPopoverController dismissPopoverAnimated:NO];
@@ -875,7 +927,6 @@
 	}
 }
 
-
 - (void)setSplitPosition:(float)posn animated:(BOOL)animate
 {
 	BOOL shouldAnimate = (animate && [self isShowingMaster]);
@@ -888,7 +939,18 @@
 	}
 }
 
+- (void) setSplitPositionWithSwipeLeft:(BOOL)left 
+{
+	BOOL constrained = NO;
+	float finalPosn = [self constrainSplitPosition:(left ? 0 : self.view.bounds.size.width) constrained:&constrained];
 
+	BounceContext *context = malloc(sizeof(BounceContext));
+	context->finalPosn = finalPosn -= (left ? 0 : _dividerView.bounds.size.width);
+	context->left = left;
+	context->count = 0;
+	[self bounceWithContext:context];
+}
+	 
 - (float)splitWidth
 {
 	return _splitWidth;
