@@ -22,6 +22,7 @@
 	if ((self = [super initWithFrame:frame])) {
 		self.userInteractionEnabled = NO;
 		self.allowsDragging = NO;
+		self.allowsSwiping = NO;
 		self.contentMode = UIViewContentModeRedraw;
 	}
 	return self;
@@ -221,26 +222,35 @@
 		allowsDragging = flag;
 		self.userInteractionEnabled = allowsDragging;
 	}
+}
 
-	// lazily load the gesture recognizers for swiping the divider.
-	if (flag && [self.gestureRecognizers count] <= 0) {
-		// set up swipe gestures
-		UISwipeGestureRecognizer *recognizer = nil;
-		recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeFrom:)];
-		[self addGestureRecognizer:recognizer];
-		[recognizer release];
-		
-		recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeFrom:)];
-		recognizer.direction = UISwipeGestureRecognizerDirectionLeft;		
-		[self addGestureRecognizer:recognizer];
-		[recognizer release];
+- (void) setAllowsSwiping:(BOOL)flag
+{
+	allowsSwiping = flag;
+
+	if (self.allowsDragging && flag) {
+		NSPredicate *predicate = [NSPredicate predicateWithFormat:@"class == %@", [UISwipeGestureRecognizer class]];
+		NSArray *filteredArray = [self.gestureRecognizers filteredArrayUsingPredicate:predicate];
+		if ([filteredArray count] == 0) {
+			// set up swipe gestures Right (default)
+			UISwipeGestureRecognizer *recognizer = nil;
+			recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeFrom:)];
+			[self addGestureRecognizer:recognizer];
+			[recognizer release];
+			
+			// ...and Left
+			recognizer = [[UISwipeGestureRecognizer alloc] initWithTarget:self action:@selector(handleSwipeFrom:)];
+			recognizer.direction = UISwipeGestureRecognizerDirectionLeft;		
+			[self addGestureRecognizer:recognizer];
+			[recognizer release];
+		}
 	}
-	
 }
 
 
 @synthesize splitViewController;
 @synthesize allowsDragging;
+@synthesize allowsSwiping;
 
 
 @end

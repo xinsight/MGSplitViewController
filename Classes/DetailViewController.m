@@ -144,6 +144,7 @@
 {
 	MGSplitViewDividerStyle newStyle = ((splitController.dividerStyle == MGSplitViewDividerStyleThin) ? MGSplitViewDividerStylePaneSplitter : MGSplitViewDividerStyleThin);
 	[splitController setDividerStyle:newStyle animated:YES];
+	splitController.allowsSwipingDivider = YES;
 	[self configureView];
 }
 

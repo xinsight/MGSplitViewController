@@ -12,10 +12,12 @@
 @interface MGSplitDividerView : UIView {
 	MGSplitViewController *splitViewController;
 	BOOL allowsDragging;
+	BOOL allowsSwiping;
 }
 
 @property (nonatomic, assign) MGSplitViewController *splitViewController; // weak ref.
 @property (nonatomic, assign) BOOL allowsDragging;
+@property (nonatomic, assign) BOOL allowsSwiping;
 
 - (void)drawGripThumbInRect:(CGRect)rect;
 
