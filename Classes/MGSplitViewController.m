@@ -228,28 +228,13 @@
 
 - (CGSize)splitViewSizeForOrientation:(UIInterfaceOrientation)theOrientation
 {
-	UIScreen *screen = [UIScreen mainScreen];
-	CGRect fullScreenRect = screen.bounds; // always implicitly in Portrait orientation.
-	CGRect appFrame = screen.applicationFrame;
-	
-	// Find status bar height by checking which dimension of the applicationFrame is narrower than screen bounds.
-	// Little bit ugly looking, but it'll still work even if they change the status bar height in future.
-	float statusBarHeight = MAX((fullScreenRect.size.width - appFrame.size.width), (fullScreenRect.size.height - appFrame.size.height));
-	
-	// Initially assume portrait orientation.
-	float width = fullScreenRect.size.width;
-	float height = fullScreenRect.size.height;
-	
-	// Correct for orientation.
-	if (UIInterfaceOrientationIsLandscape(theOrientation)) {
-		width = height;
-		height = fullScreenRect.size.width;
+	CGSize size = self.view.bounds.size;
+	if (UIInterfaceOrientationIsPortrait(self.interfaceOrientation) != UIInterfaceOrientationIsPortrait(theOrientation)) {
+		CGFloat temp = size.width;
+		size.width = size.height;
+		size.height = temp;
 	}
-	
-	// Account for status bar, which always subtracts from the height (since it's always at the top of the screen).
-	height -= statusBarHeight;
-	
-	return CGSizeMake(width, height);
+	return size;
 }
 
 
