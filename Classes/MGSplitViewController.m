@@ -319,6 +319,7 @@
 		if (controller && [controller isKindOfClass:[UIViewController class]])  {
 			theView = controller.view;
 			if (theView) {
+			
 				theView.frame = masterRect;
 				if (!theView.superview) {
 					[controller viewWillAppear:NO];
@@ -591,6 +592,11 @@
 		
 		// Remove master from popover and destroy popover, if it exists.
 		[_hiddenPopoverController dismissPopoverAnimated:NO];
+		
+		// Feed the popover controller a fake view controller, so it releases the original (master), and does its dark magic.
+		// This fixes bug when the master view controller is contextually wrong (the height of its top and bottom bars will be wrong) when a user launches app in portrait, opens a modal full-screen view controller in landscape, then closes the view controller in landscape.
+		_hiddenPopoverController.contentViewController = [[[UIViewController alloc] init] autorelease];
+		
 		[_hiddenPopoverController release];
 		_hiddenPopoverController = nil;
 		
