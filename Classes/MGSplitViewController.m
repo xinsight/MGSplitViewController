@@ -1086,15 +1086,18 @@
 	
 	// Reconfigure general appearance and behaviour.
 	float cornerRadius;
-	if (_dividerStyle == MGSplitViewDividerStyleThin) {
-		cornerRadius = MG_DEFAULT_CORNER_RADIUS;
-		_splitWidth = MG_DEFAULT_SPLIT_WIDTH;
-		self.allowsDraggingDivider = NO;
-		
-	} else if (_dividerStyle == MGSplitViewDividerStylePaneSplitter) {
-		cornerRadius = MG_PANESPLITTER_CORNER_RADIUS;
-		_splitWidth = MG_PANESPLITTER_SPLIT_WIDTH;
-		self.allowsDraggingDivider = YES;
+	switch (_dividerStyle) {
+		case MGSplitViewDividerStylePaneSplitter:
+			cornerRadius = MG_PANESPLITTER_CORNER_RADIUS;
+			_splitWidth = MG_PANESPLITTER_SPLIT_WIDTH;
+			self.allowsDraggingDivider = YES;
+			break;
+		default:
+			_dividerStyle = MGSplitViewDividerStyleThin;
+		case MGSplitViewDividerStyleThin:
+			cornerRadius = MG_DEFAULT_CORNER_RADIUS;
+			_splitWidth = MG_DEFAULT_SPLIT_WIDTH;
+			self.allowsDraggingDivider = NO;
 	}
 	
 	// Update divider and corners.
