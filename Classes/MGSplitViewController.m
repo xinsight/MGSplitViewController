@@ -642,7 +642,7 @@
 #pragma mark IB Actions
 
 
-- (IBAction)toggleSplitOrientation:(id)sender
+- (IBAction)toggleSplitOrientation
 {
 	BOOL showingMaster = [self isShowingMaster];
 	if (showingMaster) {
@@ -663,7 +663,7 @@
 }
 
 
-- (IBAction)toggleMasterBeforeDetail:(id)sender
+- (IBAction)toggleMasterBeforeDetail
 {
 	BOOL showingMaster = [self isShowingMaster];
 	if (showingMaster) {
@@ -684,7 +684,7 @@
 }
 
 
-- (IBAction)toggleMasterView:(id)sender
+- (IBAction)toggleMasterView
 {
 	if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
 		[_hiddenPopoverController dismissPopoverAnimated:NO];

@@ -128,14 +128,14 @@
 
 - (IBAction)toggleMasterView:(id)sender
 {
-	[splitController toggleMasterView:sender];
+	[splitController toggleMasterView];
 	[self configureView];
 }
 
 
 - (IBAction)toggleVertical:(id)sender
 {
-	[splitController toggleSplitOrientation:self];
+	[splitController toggleSplitOrientation];
 	[self configureView];
 }
 
@@ -150,7 +150,7 @@
 
 - (IBAction)toggleMasterBeforeDetail:(id)sender
 {
-	[splitController toggleMasterBeforeDetail:sender];
+	[splitController toggleMasterBeforeDetail];
 	[self configureView];
 }
 

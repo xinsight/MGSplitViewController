@@ -51,9 +51,9 @@ typedef enum _MGSplitViewDividerStyle {
 @property (nonatomic, readonly, getter=isLandscape) BOOL landscape; // returns YES if this view controller is in either of the two Landscape orientations, else NO.
 
 // Actions
-- (IBAction)toggleSplitOrientation:(id)sender; // toggles split axis between vertical (left/right; default) and horizontal (top/bottom).
-- (IBAction)toggleMasterBeforeDetail:(id)sender; // toggles position of master view relative to detail view.
-- (IBAction)toggleMasterView:(id)sender; // toggles display of the master view in the current orientation.
+- (IBAction)toggleSplitOrientation; // toggles split axis between vertical (left/right; default) and horizontal (top/bottom).
+- (IBAction)toggleMasterBeforeDetail; // toggles position of master view relative to detail view.
+- (IBAction)toggleMasterView; // toggles display of the master view in the current orientation.
 - (IBAction)showMasterPopover:(id)sender; // shows the master view in a popover spawned from the provided barButtonItem, if it's currently hidden.
 - (void)notePopoverDismissed; // should rarely be needed, because you should not change the popover's delegate. If you must, then call this when it's dismissed.
 
