@@ -733,7 +733,9 @@
             if (animate) {
                 [UIView commitAnimations];
             }
-		}
+		} else {
+            _showsMasterInPortrait = flag;
+        }
 	}
 }
 
@@ -771,7 +773,9 @@
             if (animate) {
                 [UIView commitAnimations];
             }
-		}
+		} else {
+            _showsMasterInLandscape = flag;
+        }
 	}
 }
 
