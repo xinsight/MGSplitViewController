@@ -15,6 +15,8 @@
 	IBOutlet UIBarButtonItem *verticalItem;
 	IBOutlet UIBarButtonItem *dividerStyleItem;
 	IBOutlet UIBarButtonItem *masterBeforeDetailItem;
+    IBOutlet UIBarButtonItem *allowSwipingItem;
+    IBOutlet UIBarButtonItem *allowTappingItem;
     UIPopoverController *popoverController;
     UIToolbar *toolbar;
     
@@ -30,5 +32,7 @@
 - (IBAction)toggleVertical:(id)sender;
 - (IBAction)toggleDividerStyle:(id)sender;
 - (IBAction)toggleMasterBeforeDetail:(id)sender;
+- (IBAction)toggleAllowSwiping:(id)sender;
+- (IBAction)toggleAllowTapping:(id)sender;
 
 @end

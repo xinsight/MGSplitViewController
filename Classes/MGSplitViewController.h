@@ -14,6 +14,12 @@ typedef enum _MGSplitViewDividerStyle {
 	MGSplitViewDividerStylePaneSplitter	= 1  // Thick divider, drawn with a grey gradient and a grab-strip.
 } MGSplitViewDividerStyle;
 
+typedef enum _MGSplitViewPosition {
+    MGSplitViewPositionLeft         = 0, // The Master view is hidden, but the divider is still visible
+    MGSplitViewPositionMiddle       = 1, // The Master view is visible and the divider is in it's previous "split" position
+    MGSplitViewPositionRight        = 2  // The Detail view is hidden, and the divider is all the way to the right
+} MGSplitViewPosition;
+
 @class MGSplitDividerView;
 @protocol MGSplitViewControllerDelegate;
 @interface MGSplitViewController : UIViewController <UIPopoverControllerDelegate> {
@@ -29,6 +35,7 @@ typedef enum _MGSplitViewDividerStyle {
 	MGSplitDividerView *_dividerView; // View that draws the divider between the master and detail views.
 	NSArray *_cornerViews; // Views to draw the inner rounded corners between master and detail views.
 	float _splitPosition;
+    MGSplitViewPosition _generalSplitPosition;
 	BOOL _reconfigurePopup;
 	MGSplitViewDividerStyle _dividerStyle; // Meta-setting which configures several aspects of appearance and behaviour.
 }
@@ -39,9 +46,11 @@ typedef enum _MGSplitViewDividerStyle {
 @property (nonatomic, assign, getter=isVertical) BOOL vertical; // if NO, split is horizontal, i.e. master above detail (default YES)
 @property (nonatomic, assign, getter=isMasterBeforeDetail) BOOL masterBeforeDetail; // if NO, master view is below/right of detail (default YES)
 @property (nonatomic, assign) float splitPosition; // starting position of split in pixels, relative to top/left (depending on .isVertical setting) if masterBeforeDetail is YES, else relative to bottom/right.
+@property (nonatomic, assign) MGSplitViewPosition generalSplitPosition;
 @property (nonatomic, assign) float splitWidth; // width of split in pixels.
 @property (nonatomic, assign) BOOL allowsDraggingDivider; // whether to let the user drag the divider to alter the split position (default NO).
 @property (nonatomic, assign) BOOL allowsSwipingDivider; // whether to let the user swipe the divider to push split position to the edge of the srcreen (default NO).
+@property (nonatomic, assign) BOOL allowsTappingDivider; // whether to let the user tap the divider to show/hide the master detail view (default NO).
 
 @property (nonatomic, copy) NSArray *viewControllers; // array of UIViewControllers; master is at index 0, detail is at index 1.
 @property (nonatomic, retain) IBOutlet UIViewController *masterViewController; // convenience.
@@ -70,7 +79,7 @@ typedef enum _MGSplitViewDividerStyle {
 
 			This implementation was chosen so you don't need to recalculate equivalent splitPositions if the user toggles masterBeforeDetail themselves.
  */
-- (void) setSplitPositionWithSwipeLeft:(BOOL)left;
+- (void) setGeneralSplitPosition:(MGSplitViewPosition)position animated:(BOOL)animate;
 - (void)setDividerStyle:(MGSplitViewDividerStyle)newStyle animated:(BOOL)animate; // Allows for animation of dividerStyle changes. The property's regular setter is not animated.
 - (NSArray *)cornerViews;
 /*

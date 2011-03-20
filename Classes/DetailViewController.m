@@ -52,6 +52,8 @@
 	toggleItem.title = ([splitController isShowingMaster]) ? @"Hide Master" : @"Show Master"; // "I... AM... THE MASTER!" Derek Jacobi. Gave me chills.
 	verticalItem.title = (splitController.vertical) ? @"Horizontal Split" : @"Vertical Split";
 	dividerStyleItem.title = (splitController.dividerStyle == MGSplitViewDividerStyleThin) ? @"Enable Dragging" : @"Disable Dragging";
+    allowSwipingItem.title = (splitController.allowsSwipingDivider) ? @"Disable Swiping" : @"Enable Swiping";
+    allowTappingItem.title = (splitController.allowsTappingDivider) ? @"Disable Tapping" : @"Enable Tapping";
 	masterBeforeDetailItem.title = (splitController.masterBeforeDetail) ? @"Detail First" : @"Master First";
 }
 
@@ -144,7 +146,6 @@
 {
 	MGSplitViewDividerStyle newStyle = ((splitController.dividerStyle == MGSplitViewDividerStyleThin) ? MGSplitViewDividerStylePaneSplitter : MGSplitViewDividerStyleThin);
 	[splitController setDividerStyle:newStyle animated:YES];
-	splitController.allowsSwipingDivider = YES;
 	[self configureView];
 }
 
@@ -153,6 +154,16 @@
 {
 	[splitController toggleMasterBeforeDetail:sender];
 	[self configureView];
+}
+
+- (IBAction)toggleAllowSwiping:(id)sender {
+    splitController.allowsSwipingDivider = !splitController.allowsSwipingDivider;
+    [self configureView];
+}
+
+- (IBAction)toggleAllowTapping:(id)sender {
+    splitController.allowsTappingDivider = !splitController.allowsTappingDivider;
+    [self configureView];
 }
 
 
@@ -180,6 +191,8 @@
     
     [detailItem release];
     [detailDescriptionLabel release];
+    [allowSwipingItem release];
+    [allowTappingItem release];
     [super dealloc];
 }
 

@@ -131,6 +131,7 @@
 	_vertical = YES;
 	_masterBeforeDetail = YES;
 	_splitPosition = MG_DEFAULT_SPLIT_POSITION;
+    _generalSplitPosition = MGSplitViewPositionMiddle;
 	CGRect divRect = self.view.bounds;
 	if ([self isVertical]) {
 		divRect.origin.y = _splitPosition;
@@ -636,30 +637,36 @@
 
 typedef struct BounceContext_tag {
 	float finalPosn;
-	BOOL left;
+	BOOL fromLeft;
 	int count;
 } BounceContext;
 
 - (void) bounceWithContext:(BounceContext*)context
 {
 	[UIView beginAnimations:@"Bounce" context:context];
-	float nextPos = 0;
 	switch (context->count) {
 		case 0:
-			nextPos = context->left ? context->finalPosn - 20 : context->finalPosn + 20;
+			_splitPosition = context->fromLeft ? context->finalPosn + 20 : context->finalPosn - 20;
 			[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
 			[UIView setAnimationDelay:0.25];
 			break;
 		case 1:
-			nextPos = context->finalPosn;
+			_splitPosition = context->finalPosn;
 			[UIView setAnimationCurve:UIViewAnimationCurveLinear];
 			[UIView setAnimationDelay:0.05];
+            // Inform delegate.
+            if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:willMoveSplitToPosition:)]) {
+                [_delegate splitViewController:self willMoveSplitToPosition:_splitPosition];
+            }
 			break;
 	}
 	
 	[UIView setAnimationDelegate:self];
 	[UIView setAnimationDidStopSelector:@selector(bounceStepDidEnd:finished:context:)];
-	[self setSplitPosition:nextPos];
+    // Bypass regular setter so we can animate
+    if ([self isShowingMaster]) {
+        [self layoutSubviews];
+    }
 	[UIView commitAnimations];	
 	
 }
@@ -888,6 +895,7 @@ typedef struct BounceContext_tag {
 	float newPosn = posn;
 	*constrained = NO;
 	CGSize fullSize = [self splitViewSizeForOrientation:self.interfaceOrientation];
+    NSLog(@"Full Size: %@", NSStringFromCGSize(fullSize));
 	if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:constrainSplitPosition:splitViewSize:)]) {
 		newPosn = [_delegate splitViewController:self constrainSplitPosition:newPosn splitViewSize:fullSize];
 		*constrained = YES; // implicitly trust delegate's response.
@@ -897,6 +905,7 @@ typedef struct BounceContext_tag {
 		float minPos = MG_MIN_VIEW_WIDTH;
 		float maxPos = ((_vertical) ? fullSize.width : fullSize.height) - (MG_MIN_VIEW_WIDTH + _splitWidth);
 		*constrained = (newPosn != _splitPosition && newPosn >= minPos && newPosn <= maxPos);
+        NSLog(@"Constrain: %f .. %f (%d)", minPos, maxPos, *constrained);
 	}
 
 	return newPosn;
@@ -908,7 +917,7 @@ typedef struct BounceContext_tag {
 	// Check to see if delegate wishes to constrain the position.
 	BOOL constrained = NO;
 	float newPosn = [self constrainSplitPosition:posn constrained:&constrained];
-
+    NSLog(@"Set Position: %f -> %f, %d", posn, newPosn, constrained);
 	if (constrained) {
 		if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
 			[_hiddenPopoverController dismissPopoverAnimated:NO];
@@ -939,16 +948,45 @@ typedef struct BounceContext_tag {
 	}
 }
 
-- (void) setSplitPositionWithSwipeLeft:(BOOL)left 
+- (MGSplitViewPosition)generalSplitPosition
 {
-	BOOL constrained = NO;
-	float finalPosn = [self constrainSplitPosition:(left ? 0 : self.view.bounds.size.width) constrained:&constrained];
+    return _generalSplitPosition;
+}
 
-	BounceContext *context = malloc(sizeof(BounceContext));
-	context->finalPosn = finalPosn -= (left ? 0 : _dividerView.bounds.size.width);
-	context->left = left;
-	context->count = 0;
-	[self bounceWithContext:context];
+- (void) setGeneralSplitPosition:(MGSplitViewPosition)position
+{
+    _generalSplitPosition = position;
+}
+
+- (void) setGeneralSplitPosition:(MGSplitViewPosition)position animated:(BOOL)animate
+{
+    NSLog(@"Divider: %f, %d -> %d", _splitPosition, _generalSplitPosition, position);
+    if (_generalSplitPosition != position) {
+        BOOL constrained = NO;
+        BounceContext *context = malloc(sizeof(BounceContext));
+        context->count = 0;
+
+        switch (position) {
+            case MGSplitViewPositionLeft:
+                context->finalPosn = [self constrainSplitPosition:0 constrained:&constrained];
+                context->fromLeft = NO;
+                break;
+            case MGSplitViewPositionRight:
+                context->finalPosn = [self constrainSplitPosition:self.view.bounds.size.width constrained:&constrained] - _dividerView.bounds.size.width;
+                context->fromLeft = YES;
+                break;
+            default:
+                position = MGSplitViewPositionMiddle;
+            case MGSplitViewPositionMiddle:
+                context->finalPosn = [self constrainSplitPosition:MG_DEFAULT_SPLIT_POSITION constrained:&constrained];
+                context->fromLeft = (_generalSplitPosition == MGSplitViewPositionLeft);
+                break;
+        }
+
+        _generalSplitPosition = position;
+        NSLog(@"Bounce: %f : %d", context->finalPosn, context->fromLeft);
+        [self bounceWithContext:context];
+    }
 }
 	 
 - (float)splitWidth
@@ -1116,17 +1154,22 @@ typedef struct BounceContext_tag {
 
 - (BOOL)allowsSwipingDivider
 {
-	if ([self allowsDraggingDivider] && _dividerView.allowsSwiping) {
-		return _dividerView.allowsSwiping;
-	}
-	
-	return NO;
+	return ([self allowsDraggingDivider] && _dividerView.allowsSwiping);
 }
-
 
 - (void)setAllowsSwipingDivider:(BOOL)flag
 {
 	_dividerView.allowsSwiping = flag;
+}
+
+- (BOOL)allowsTappingDivider
+{
+    return ([self allowsDraggingDivider] && _dividerView.allowsTapping);
+}
+
+- (void)setAllowsTappingDivider:(BOOL)flag
+{
+    _dividerView.allowsTapping = flag;
 }
 
 - (MGSplitViewDividerStyle)dividerStyle
@@ -1206,9 +1249,11 @@ typedef struct BounceContext_tag {
 @dynamic detailViewController;
 @dynamic dividerView;
 @dynamic splitPosition;
+@dynamic generalSplitPosition;
 @dynamic splitWidth;
 @dynamic allowsDraggingDivider;
 @dynamic allowsSwipingDivider;
+@dynamic allowsTappingDivider;
 @dynamic dividerStyle;
 
 
