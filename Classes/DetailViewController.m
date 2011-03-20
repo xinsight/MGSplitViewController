@@ -118,6 +118,8 @@
 - (float)splitViewController:(MGSplitViewController *)svc constrainSplitPosition:(float)proposedPosition splitViewSize:(CGSize)viewSize
 {
 	//NSLog(@"%@", NSStringFromSelector(_cmd));
+    if (proposedPosition < 200) return 200;
+    if (proposedPosition > 500) return 500;
 	return proposedPosition;
 }
 
