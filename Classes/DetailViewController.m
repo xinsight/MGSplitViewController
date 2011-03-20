@@ -179,6 +179,11 @@
     
     [detailItem release];
     [detailDescriptionLabel release];
+    
+    [masterBeforeDetailItem release];
+    [toggleItem  release];
+    [verticalItem release];
+    [dividerStyleItem release];
     [super dealloc];
 }
 
