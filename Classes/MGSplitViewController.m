@@ -22,7 +22,7 @@
 
 #define MG_ANIMATION_CHANGE_SPLIT_ORIENTATION	@"ChangeSplitOrientation"	// Animation ID for internal use.
 #define MG_ANIMATION_CHANGE_SUBVIEWS_ORDER		@"ChangeSubviewsOrder"	// Animation ID for internal use.
-
+#define MG_ANIMATION_CHANGE_SHOW_MASTER     @"ChangeShowsMaster"
 
 @interface MGSplitViewController (MGPrivateMethods)
 
@@ -644,67 +644,24 @@
 
 - (IBAction)toggleSplitOrientation
 {
-	BOOL showingMaster = [self isShowingMaster];
-	if (showingMaster) {
-		if (_cornerViews) {
-			for (UIView *corner in _cornerViews) {
-				corner.hidden = YES;
-			}
-			_dividerView.hidden = YES;
-		}
-		[UIView beginAnimations:MG_ANIMATION_CHANGE_SPLIT_ORIENTATION context:nil];
-		[UIView setAnimationDelegate:self];
-		[UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-	}
-	self.vertical = (!self.vertical);
-	if (showingMaster) {
-		[UIView commitAnimations];
-	}
+    [self setVerticle:!_vertical animated:YES];
 }
 
 
 - (IBAction)toggleMasterBeforeDetail
 {
-	BOOL showingMaster = [self isShowingMaster];
-	if (showingMaster) {
-		if (_cornerViews) {
-			for (UIView *corner in _cornerViews) {
-				corner.hidden = YES;
-			}
-			_dividerView.hidden = YES;
-		}
-		[UIView beginAnimations:MG_ANIMATION_CHANGE_SUBVIEWS_ORDER context:nil];
-		[UIView setAnimationDelegate:self];
-		[UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
-	}
-	self.masterBeforeDetail = (!self.masterBeforeDetail);
-	if (showingMaster) {
-		[UIView commitAnimations];
-	}
+    [self setMasterBeforeDetail:!_masterBeforeDetail animated:YES];
 }
 
 
 - (IBAction)toggleMasterView
 {
-	if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
-		[_hiddenPopoverController dismissPopoverAnimated:NO];
-	}
-	
-	if (![self isShowingMaster]) {
-		// We're about to show the master view. Ensure it's in place off-screen to be animated in.
-		_reconfigurePopup = YES;
-		[self reconfigureForMasterInPopover:NO];
-		[self layoutSubviews];
-	}
-	
-	// This action functions on the current primary orientation; it is independent of the other primary orientation.
-	[UIView beginAnimations:@"toggleMaster" context:nil];
+    // This action functions on the current primary orientation; it is independent of the other primary orientation.
 	if (self.isLandscape) {
-		self.showsMasterInLandscape = !_showsMasterInLandscape;
-	} else {
-		self.showsMasterInPortrait = !_showsMasterInPortrait;
-	}
-	[UIView commitAnimations];
+        [self setShowsMasterInLandscape:!_showsMasterInLandscape animated:YES];
+    } else {
+        [self setShowsMasterInPortrait:!_showsMasterInPortrait animated:YES];
+    }
 }
 
 
@@ -748,24 +705,37 @@
 	return _showsMasterInPortrait;
 }
 
-
 - (void)setShowsMasterInPortrait:(BOOL)flag
 {
-	if (flag != _showsMasterInPortrait) {
-		_showsMasterInPortrait = flag;
-		
+    [self setShowsMasterInPortrait:flag animated: NO];
+}
+
+- (void)setShowsMasterInPortrait:(BOOL)flag animated:(BOOL)animate
+{
+	if (flag != _showsMasterInPortrait) {	
 		if (![self isLandscape]) { // i.e. if this will cause a visual change.
 			if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
 				[_hiddenPopoverController dismissPopoverAnimated:NO];
 			}
-			
+            if (animate) {
+                if (![self isShowingMaster]) {
+                    // We're about to show the master view. Ensure it's in place off-screen to be animated in.
+                    _reconfigurePopup = YES;
+                    [self reconfigureForMasterInPopover:NO];
+                    [self layoutSubviews];
+                }
+                [UIView beginAnimations:MG_ANIMATION_CHANGE_SHOW_MASTER context:nil];
+            }
 			// Rearrange views.
+            _showsMasterInPortrait = flag;
 			_reconfigurePopup = YES;
 			[self layoutSubviews];
+            if (animate) {
+                [UIView commitAnimations];
+            }
 		}
 	}
 }
-
 
 - (BOOL)showsMasterInLandscape
 {
@@ -775,21 +745,35 @@
 
 - (void)setShowsMasterInLandscape:(BOOL)flag
 {
+    [self setShowsMasterInLandscape:flag animated:NO];
+}
+
+- (void)setShowsMasterInLandscape:(BOOL)flag animated:(BOOL)animate
+{
 	if (flag != _showsMasterInLandscape) {
-		_showsMasterInLandscape = flag;
-		
 		if ([self isLandscape]) { // i.e. if this will cause a visual change.
 			if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
 				[_hiddenPopoverController dismissPopoverAnimated:NO];
 			}
-			
+            if (animate) {
+                if (![self isShowingMaster]) {
+                    // We're about to show the master view. Ensure it's in place off-screen to be animated in.
+                    _reconfigurePopup = YES;
+                    [self reconfigureForMasterInPopover:NO];
+                    [self layoutSubviews];
+                }
+                [UIView beginAnimations:MG_ANIMATION_CHANGE_SHOW_MASTER context:nil];
+            }
 			// Rearrange views.
+            _showsMasterInLandscape = flag;
 			_reconfigurePopup = YES;
 			[self layoutSubviews];
+            if (animate) {
+                [UIView commitAnimations];
+            }
 		}
 	}
 }
-
 
 - (BOOL)isVertical
 {
@@ -799,19 +783,43 @@
 
 - (void)setVertical:(BOOL)flag
 {
+    [self setVerticle:flag animated:NO];
+}
+
+- (void)setVerticle:(BOOL)flag animated:(BOOL)animate
+{
 	if (flag != _vertical) {
 		if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
 			[_hiddenPopoverController dismissPopoverAnimated:NO];
 		}
-		
+        BOOL showingMaster = [self isShowingMaster];
 		_vertical = flag;
+        
 		
 		// Inform delegate.
 		if (_delegate && [_delegate respondsToSelector:@selector(splitViewController:willChangeSplitOrientationToVertical:)]) {
 			[_delegate splitViewController:self willChangeSplitOrientationToVertical:_vertical];
 		}
-		
-		[self layoutSubviews];
+        if (showingMaster) {
+            if (animate) {
+                if (_cornerViews) {
+                    for (UIView *corner in _cornerViews) {
+                        corner.hidden = YES;
+                    }
+                    _dividerView.hidden = YES;
+                }
+                [UIView beginAnimations:MG_ANIMATION_CHANGE_SPLIT_ORIENTATION context:nil];
+                [UIView setAnimationDelegate:self];
+                [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+            }
+            
+            // Relayout subviews
+            [self layoutSubviews];
+            
+            if (animate) {
+                [UIView commitAnimations];
+            }
+        }
 	}
 }
 
@@ -824,16 +832,37 @@
 
 - (void)setMasterBeforeDetail:(BOOL)flag
 {
+    [self setMasterBeforeDetail:flag animated:NO];
+}
+
+- (void)setMasterBeforeDetail:(BOOL)flag animated:(BOOL)animate
+{
 	if (flag != _masterBeforeDetail) {
 		if (_hiddenPopoverController && _hiddenPopoverController.popoverVisible) {
 			[_hiddenPopoverController dismissPopoverAnimated:NO];
 		}
-		
-		_masterBeforeDetail = flag;
-		
-		if ([self isShowingMaster]) {
+        BOOL showingMaster = [self isShowingMaster];
+        _masterBeforeDetail = flag;
+        if (showingMaster) {
+            if (animate) {
+                if (_cornerViews) {
+                    for (UIView *corner in _cornerViews) {
+                        corner.hidden = YES;
+                    }
+                    _dividerView.hidden = YES;
+                }
+                [UIView beginAnimations:MG_ANIMATION_CHANGE_SUBVIEWS_ORDER context:nil];
+                [UIView setAnimationDelegate:self];
+                [UIView setAnimationDidStopSelector:@selector(animationDidStop:finished:context:)];
+            }
+
+            // relayout the views
 			[self layoutSubviews];
-		}
+
+            if (animate) {
+                [UIView commitAnimations];
+            }
+        }   
 	}
 }
 

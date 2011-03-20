@@ -79,6 +79,10 @@ typedef enum _MGSplitViewDividerStyle {
 	2. Change their .cornerRadius
  */
 
+- (void)setShowsMasterInPortrait:(BOOL)flag animated:(BOOL)animate;
+- (void)setShowsMasterInLandscape:(BOOL)flag animated:(BOOL)animate;
+- (void)setMasterBeforeDetail:(BOOL)flag animated:(BOOL)animate;
+- (void)setVerticle:(BOOL)flag animated:(BOOL)animate;
 @end
 
 
