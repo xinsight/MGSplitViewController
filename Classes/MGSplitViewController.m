@@ -945,7 +945,7 @@
 
 - (NSArray *)viewControllers
 {
-	return [[_viewControllers copy] autorelease];
+	return _viewControllers ;
 }
 
 
