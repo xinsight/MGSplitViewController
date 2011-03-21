@@ -952,13 +952,6 @@
 - (void)setViewControllers:(NSArray *)controllers
 {
 	if (controllers != _viewControllers) {
-		for (UIViewController *controller in _viewControllers) {
-			if ([controller isKindOfClass:[UIViewController class]]) {
-				[controller.view removeFromSuperview];
-			}
-		}
-		[_viewControllers release];
-		_viewControllers = [[NSMutableArray alloc] initWithCapacity:2];
 		if (controllers && [controllers count] >= 2) {
 			self.masterViewController = [controllers objectAtIndex:0];
 			self.detailViewController = [controllers objectAtIndex:1];
@@ -987,7 +980,7 @@
 - (void)setMasterViewController:(UIViewController *)master
 {
 	if (!_viewControllers) {
-		_viewControllers = [[NSMutableArray alloc] initWithCapacity:2];
+		_viewControllers = [[NSMutableArray alloc] initWithObjects:[NSNull null], [NSNull null], nil];
 	}
 	
 	NSObject *newMaster = master;
@@ -995,19 +988,13 @@
 		newMaster = [NSNull null];
 	}
 	
-	BOOL changed = YES;
-	if ([_viewControllers count] > 0) {
-		if ([_viewControllers objectAtIndex:0] == newMaster) {
-			changed = NO;
-		} else {
-			[_viewControllers replaceObjectAtIndex:0 withObject:newMaster];
-		}
-		
-	} else {
-		[_viewControllers addObject:newMaster];
-	}
-	
-	if (changed) {
+    if ([_viewControllers objectAtIndex:0] != newMaster) {
+        UIViewController *vc = [_viewControllers objectAtIndex:1];
+        if ([vc isKindOfClass:[UIViewController class]]) {
+            [vc.view removeFromSuperview];
+        }
+        [_viewControllers replaceObjectAtIndex:0 withObject:newMaster];
+
 		[self layoutSubviews];
 	}
 }
@@ -1029,23 +1016,21 @@
 - (void)setDetailViewController:(UIViewController *)detail
 {
 	if (!_viewControllers) {
-		_viewControllers = [[NSMutableArray alloc] initWithCapacity:2];
-		[_viewControllers addObject:[NSNull null]];
+        _viewControllers = [[NSMutableArray alloc] initWithObjects:[NSNull null], [NSNull null], nil];
 	}
-	
-	BOOL changed = YES;
-	if ([_viewControllers count] > 1) {
-		if ([_viewControllers objectAtIndex:1] == detail) {
-			changed = NO;
-		} else {
-			[_viewControllers replaceObjectAtIndex:1 withObject:detail];
-		}
-		
-	} else {
-		[_viewControllers addObject:detail];
+
+    NSObject *newDetail = detail;
+	if (!newDetail) {
+		newDetail = [NSNull null];
 	}
-	
-	if (changed) {
+
+    if ([_viewControllers objectAtIndex:1] != newDetail) {
+        UIViewController *vc = [_viewControllers objectAtIndex:1];
+        if ([vc isKindOfClass:[UIViewController class]]) {
+            [vc.view removeFromSuperview];
+        }
+        [_viewControllers replaceObjectAtIndex:1 withObject:newDetail];
+        
 		[self layoutSubviews];
 	}
 }
