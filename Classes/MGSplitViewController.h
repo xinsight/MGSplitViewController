@@ -23,6 +23,7 @@ typedef enum _MGSplitViewDividerStyle {
 	id _delegate;
 	BOOL _vertical;
 	BOOL _masterBeforeDetail;
+    BOOL _showsCorners;
 	NSMutableArray *_viewControllers;
 	UIBarButtonItem *_barButtonItem; // To be compliant with wacky UISplitViewController behaviour.
     UIPopoverController *_hiddenPopoverController; // Popover used to hold the master view if it's not always visible.
@@ -47,6 +48,7 @@ typedef enum _MGSplitViewDividerStyle {
 @property (nonatomic, retain) IBOutlet UIViewController *detailViewController; // convenience.
 @property (nonatomic, retain) MGSplitDividerView *dividerView; // the view which draws the divider/split between master and detail.
 @property (nonatomic, assign) MGSplitViewDividerStyle dividerStyle; // style (and behaviour) of the divider between master and detail.
+@property (nonatomic, assign) BOOL showsCorners; // override the automatic display of corners depending on split style (e.g., for modal)
 
 @property (nonatomic, readonly, getter=isLandscape) BOOL landscape; // returns YES if this view controller is in either of the two Landscape orientations, else NO.
 

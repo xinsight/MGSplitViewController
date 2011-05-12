@@ -129,6 +129,7 @@
 	_reconfigurePopup = NO;
 	_vertical = YES;
 	_masterBeforeDetail = YES;
+    _showsCorners = YES;
 	_splitPosition = MG_DEFAULT_SPLIT_POSITION;
 	CGRect divRect = self.view.bounds;
 	if ([self isVertical]) {
@@ -161,7 +162,6 @@
 
 #pragma mark -
 #pragma mark View management
-
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
@@ -412,64 +412,72 @@
 	}
 	
 	// Create corner views if necessary.
-	MGSplitCornersView *leadingCorners = nil; // top/left of screen in vertical/horizontal split.
-	MGSplitCornersView *trailingCorners = nil; // bottom/right of screen in vertical/horizontal split.
-	if (!_cornerViews) {
-		CGRect cornerRect = CGRectMake(0, 0, 10, 10); // arbitrary, will be resized below.
-		leadingCorners = [[MGSplitCornersView alloc] initWithFrame:cornerRect];
-		leadingCorners.splitViewController = self;
-		leadingCorners.cornerBackgroundColor = MG_DEFAULT_CORNER_COLOR;
-		leadingCorners.cornerRadius = MG_DEFAULT_CORNER_RADIUS;
-		trailingCorners = [[MGSplitCornersView alloc] initWithFrame:cornerRect];
-		trailingCorners.splitViewController = self;
-		trailingCorners.cornerBackgroundColor = MG_DEFAULT_CORNER_COLOR;
-		trailingCorners.cornerRadius = MG_DEFAULT_CORNER_RADIUS;
-		_cornerViews = [[NSArray alloc] initWithObjects:leadingCorners, trailingCorners, nil];
-		[leadingCorners release];
-		[trailingCorners release];
-		
-	} else if ([_cornerViews count] == 2) {
-		leadingCorners = [_cornerViews objectAtIndex:0];
-		trailingCorners = [_cornerViews objectAtIndex:1];
-	}
-	
-	// Configure and layout the corner-views.
-	leadingCorners.cornersPosition = (_vertical) ? MGCornersPositionLeadingVertical : MGCornersPositionLeadingHorizontal;
-	trailingCorners.cornersPosition = (_vertical) ? MGCornersPositionTrailingVertical : MGCornersPositionTrailingHorizontal;
-	leadingCorners.autoresizingMask = (_vertical) ? UIViewAutoresizingFlexibleBottomMargin : UIViewAutoresizingFlexibleRightMargin;
-	trailingCorners.autoresizingMask = (_vertical) ? UIViewAutoresizingFlexibleTopMargin : UIViewAutoresizingFlexibleLeftMargin;
-	
-	float x, y, cornersWidth, cornersHeight;
-	CGRect leadingRect, trailingRect;
-	float radius = leadingCorners.cornerRadius;
-	if (_vertical) { // left/right split
-		cornersWidth = (radius * 2.0) + _splitWidth;
-		cornersHeight = radius;
-		x = ((shouldShowMaster) ? ((masterFirst) ? _splitPosition : width - (_splitPosition + _splitWidth)) : (0 - _splitWidth)) - radius;
-		y = 0;
-		leadingRect = CGRectMake(x, y, cornersWidth, cornersHeight); // top corners
-		trailingRect = CGRectMake(x, (height - cornersHeight), cornersWidth, cornersHeight); // bottom corners
-		
-	} else { // top/bottom split
-		x = 0;
-		y = ((shouldShowMaster) ? ((masterFirst) ? _splitPosition : height - (_splitPosition + _splitWidth)) : (0 - _splitWidth)) - radius;
-		cornersWidth = radius;
-		cornersHeight = (radius * 2.0) + _splitWidth;
-		leadingRect = CGRectMake(x, y, cornersWidth, cornersHeight); // left corners
-		trailingRect = CGRectMake((width - cornersWidth), y, cornersWidth, cornersHeight); // right corners
-	}
-	
-	leadingCorners.frame = leadingRect;
-	trailingCorners.frame = trailingRect;
-	
-	// Ensure corners are visible and frontmost.
-	if (!leadingCorners.superview) {
-		[self.view insertSubview:leadingCorners aboveSubview:self.detailViewController.view];
-		[self.view insertSubview:trailingCorners aboveSubview:self.detailViewController.view];
-	} else {
-		[self.view bringSubviewToFront:leadingCorners];
-		[self.view bringSubviewToFront:trailingCorners];
-	}
+    if (_showsCorners) {
+        MGSplitCornersView *leadingCorners = nil, *trailingCorners = nil;
+        if (!_cornerViews) {
+            CGRect cornerRect = CGRectMake(0, 0, 10, 10); // arbitrary, will be resized below.
+            leadingCorners = [[MGSplitCornersView alloc] initWithFrame:cornerRect];
+            leadingCorners.splitViewController = self;
+            leadingCorners.cornerBackgroundColor = MG_DEFAULT_CORNER_COLOR;
+            leadingCorners.cornerRadius = MG_DEFAULT_CORNER_RADIUS;
+            trailingCorners = [[MGSplitCornersView alloc] initWithFrame:cornerRect];
+            trailingCorners.splitViewController = self;
+            trailingCorners.cornerBackgroundColor = MG_DEFAULT_CORNER_COLOR;
+            trailingCorners.cornerRadius = MG_DEFAULT_CORNER_RADIUS;
+            _cornerViews = [[NSArray alloc] initWithObjects:leadingCorners, trailingCorners, nil];
+            [leadingCorners release];
+            [trailingCorners release];
+            
+        } else if ([_cornerViews count] == 2) {
+            leadingCorners = [_cornerViews objectAtIndex:0];
+            trailingCorners = [_cornerViews objectAtIndex:1];
+        }
+        
+        // Configure and layout the corner-views.
+        leadingCorners.cornersPosition = (_vertical) ? MGCornersPositionLeadingVertical : MGCornersPositionLeadingHorizontal;
+        trailingCorners.cornersPosition = (_vertical) ? MGCornersPositionTrailingVertical : MGCornersPositionTrailingHorizontal;
+        leadingCorners.autoresizingMask = (_vertical) ? UIViewAutoresizingFlexibleBottomMargin : UIViewAutoresizingFlexibleRightMargin;
+        trailingCorners.autoresizingMask = (_vertical) ? UIViewAutoresizingFlexibleTopMargin : UIViewAutoresizingFlexibleLeftMargin;
+        
+        float x, y, cornersWidth, cornersHeight;
+        CGRect leadingRect, trailingRect;
+        float radius = leadingCorners.cornerRadius;
+        if (_vertical) { // left/right split
+            cornersWidth = (radius * 2.0) + _splitWidth;
+            cornersHeight = radius;
+            x = ((shouldShowMaster) ? ((masterFirst) ? _splitPosition : width - (_splitPosition + _splitWidth)) : (0 - _splitWidth)) - radius;
+            y = 0;
+            leadingRect = CGRectMake(x, y, cornersWidth, cornersHeight); // top corners
+            trailingRect = CGRectMake(x, (height - cornersHeight), cornersWidth, cornersHeight); // bottom corners
+            
+        } else { // top/bottom split
+            x = 0;
+            y = ((shouldShowMaster) ? ((masterFirst) ? _splitPosition : height - (_splitPosition + _splitWidth)) : (0 - _splitWidth)) - radius;
+            cornersWidth = radius;
+            cornersHeight = (radius * 2.0) + _splitWidth;
+            leadingRect = CGRectMake(x, y, cornersWidth, cornersHeight); // left corners
+            trailingRect = CGRectMake((width - cornersWidth), y, cornersWidth, cornersHeight); // right corners
+        }
+        
+        leadingCorners.frame = leadingRect;
+        trailingCorners.frame = trailingRect;
+        
+        // Ensure corners are visible and frontmost.
+        if (!leadingCorners.superview) {
+            [self.view insertSubview:leadingCorners aboveSubview:self.detailViewController.view];
+            [self.view insertSubview:trailingCorners aboveSubview:self.detailViewController.view];
+        } else {
+            [self.view bringSubviewToFront:leadingCorners];
+            [self.view bringSubviewToFront:trailingCorners];
+        }
+    } else {
+        if (_cornerViews) {
+            for (UIView *cornerView in _cornerViews) {
+                [cornerView removeFromSuperview];
+            }
+            [_cornerViews release]; _cornerViews = nil;
+        }
+    }
 }
 
 
@@ -828,6 +836,16 @@
 }
 
 
+
+- (BOOL)showsCorners {
+	return _showsCorners;
+}
+
+
+- (void)setShowsCorners:(BOOL)showsCorners {
+    _showsCorners = showsCorners;
+}
+
 - (BOOL)isMasterBeforeDetail
 {
 	return _masterBeforeDetail;
@@ -995,7 +1013,8 @@
         }
         [_viewControllers replaceObjectAtIndex:0 withObject:newMaster];
 
-		[self layoutSubviews];
+        if ([self isViewLoaded])
+            [self layoutSubviews];
 	}
 }
 
@@ -1031,7 +1050,8 @@
         }
         [_viewControllers replaceObjectAtIndex:1 withObject:newDetail];
         
-		[self layoutSubviews];
+        if ([self isViewLoaded])
+            [self layoutSubviews];
 	}
 }
 
@@ -1155,6 +1175,5 @@
 @dynamic splitWidth;
 @dynamic allowsDraggingDivider;
 @dynamic dividerStyle;
-
 
 @end
